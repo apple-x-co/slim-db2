@@ -1,0 +1,45 @@
+{% extends "default.twig" %}
+
+{% block title %}users | {{ parent() }}{% endblock %}
+
+{% block head_meta %}
+{% endblock %}
+
+{% block head_css %}
+{% endblock %}
+
+{% block head_js %}
+{% endblock %}
+
+{% block content %}
+    <div class="uk-section">
+        <div class="uk-container">
+            <h1>slim-db</h1>
+
+            <p><a href="{{ path_for('users.create') }}">New</a></p>
+            <table class="uk-table">
+                <caption>users</caption>
+                <thead>
+                <tr>
+                    <th>id</th>
+                    <th>name</th>
+                    <th>log</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td><a href="{{ path_for('users.detail', {'id':user.id}) }}">{{ user.id }}</a></td>
+                        <td>{{ user.name }}</td>
+                        <td>
+                            {% for userLog in user.userLogs %}
+                                <p>{{ userLog.text }}</p>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
