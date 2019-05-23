@@ -2,8 +2,6 @@
 
 namespace App\Controller;
 
-use App\Model\User;
-use App\Model\UserLog;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Respect\Validation\Validator as V;
@@ -13,7 +11,7 @@ class UsersController
     /** @var \Slim\Views\Twig */
     protected $view;
 
-    /** @var \Illuminate\Database\Capsule\Manager */
+    /** @var \Doctrine\ORM\EntityManager */
     protected $db;
 
 
@@ -40,8 +38,16 @@ class UsersController
      */
     public function index($request, $response, $args)
     {
-        //$users = User::all();
-        $users = User::with('userLogs')->get();
+        $repository = $this->db->getRepository(\App\Entity\Users::class);
+        //$users = $repository->findAll();
+        $users = $repository
+            ->createQueryBuilder('u')
+            ->select('u', 'ul')
+            ->leftJoin(\App\Entity\UserLogs::class, 'ul', 'WITH', 'u.id = ul.user')
+            ->getQuery()
+            ->getResult();
+
+        var_dump($users);
 
         return $this->view->render($response, 'users/index.twig', [
             'users' => $users

@@ -42,29 +42,31 @@ return function (App $app) {
     };
 
     // DB
-    $container[\Doctrine\ORM\EntityManager::class] = function ($container) {
+    $container['em'] = function ($c) {
+        $settings = $c->get('settings')['doctrine'];
+
         $config = \Doctrine\ORM\Tools\Setup::createAnnotationMetadataConfiguration(
-            $container['settings']['doctrine']['metadata_dirs'],
-            $container['settings']['doctrine']['dev_mode']
+            $settings['meta']['entity_path'],
+            $settings['meta']['auto_generate_proxies'],
+            $settings['meta']['proxy_dir'],
+            $settings['meta']['cache'],
+            false
         );
 
         $config->setMetadataDriverImpl(
             new \Doctrine\ORM\Mapping\Driver\AnnotationDriver(
                 new \Doctrine\Common\Annotations\AnnotationReader,
-                $container['settings']['doctrine']['metadata_dirs']
+                $settings['meta']['entity_path']
             )
         );
 
         $config->setMetadataCacheImpl(
             new \Doctrine\Common\Cache\FilesystemCache(
-                $container['settings']['doctrine']['cache_dir']
+                $settings['meta']['cache_dir']
             )
         );
 
-        return \Doctrine\ORM\EntityManager::create(
-            $container['settings']['doctrine']['connection'],
-            $config
-        );
+        return \Doctrine\ORM\EntityManager::create($settings['connection'], $config);
     };
 
     // monolog
@@ -91,13 +93,15 @@ return function (App $app) {
         $env = new \DebugBar\Bridge\Twig\TraceableTwigEnvironment(new Twig_Environment($loader));
         $debugbar->addCollector(new \DebugBar\Bridge\Twig\TwigCollector($env));
 
-        //$debugbar->addCollector(new \App\Extension\DebugbarExtension\EloquentCollector($container['db']));
+        $debugStack = new Doctrine\DBAL\Logging\DebugStack();
+        $container['em']->getConnection()->getConfiguration()->setSQLLogger($debugStack);
+        $debugbar->addCollector(new DebugBar\Bridge\DoctrineCollector($debugStack));
     }
 
     // controllers
     $container[\App\Controller\UsersController::class] = function($c) {
         $view = $c->get('view');
-        $db = $c->get('db');
+        $db = $c->get('em');
         $router = $c->get('router');
         return new \App\Controller\UsersController($view, $db, $router);
     };

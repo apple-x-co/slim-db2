@@ -26,8 +26,9 @@ return [
             'meta' => [
                 'entity_path' => [__DIR__ . '/../src/Entity/'],
                 'auto_generate_proxies' => true,
-                'proxy_dir' =>  __DIR__ . '/../cache/doctrine/proxies/',
+                'proxy_dir' =>  __DIR__ . '/../cache/doctrine-proxies/',
                 'cache' => null,
+                'cache_dir' => __DIR__ . '/../cache/doctrine/'
             ],
             'connection' => [
                 'url' => getenv('DATABASE_URL')
